@@ -46,7 +46,7 @@ jobs:
             exit 1
           fi
 
-          echo "Installing Bundler $bundler_version for Ruby $ruby_version"
+          echo "Installing - Bundler $bundler_version for Ruby $ruby_version"
           gem install bundler -v $bundler_version --no-document
 
       - name: Install dependencies
