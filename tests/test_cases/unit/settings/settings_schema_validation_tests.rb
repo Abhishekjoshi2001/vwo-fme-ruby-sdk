@@ -15,10 +15,13 @@
 require 'minitest/autorun'
 require 'json'
 require_relative '../../../../lib/vwo/services/settings_service'
+require_relative '../../../../lib/vwo/services/logger_service'
 require_relative '../../../../lib/vwo/models/schemas/settings_schema_validation'
 
 class SettingsSchemaValidationTest < Minitest::Test
   def setup
+     # Initialize LoggerService first, as it's required by SettingsService
+    LoggerService.new({}) unless LoggerService.debug_messages
     @settings_schema_validation = SettingsSchema.new
     @settings_service = SettingsService.new({
       account_id: 123,
