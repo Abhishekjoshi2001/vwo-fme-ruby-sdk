@@ -16,6 +16,8 @@ require 'json'
 require 'uri'
 require_relative 'vwo/vwo_builder'
 require_relative 'vwo/vwo_client'
+require_relative 'vwo/utils/event_util'
+require_relative 'vwo/services/settings_service'
 
 class VWO
   @@vwo_builder = nil
@@ -36,6 +38,7 @@ class VWO
                    .set_network_manager
                    .set_segmentation
                    .init_polling
+                   .init_usage_stats
                    .init_batch
 
     if options[:settings]
@@ -66,7 +69,38 @@ class VWO
         puts "[ERROR]: VWO-SDK: Please provide VWO account ID in the options and should be a of type string|number"
       end
 
+      # store the current time in milliseconds
+      sdk_init_start_time = (Time.now.to_f * 1000).to_i
+      # initialize the vwo instance
       new(options)
+      # store the time after initializing the vwo instance in milliseconds
+      sdk_init_end_time = (Time.now.to_f * 1000).to_i
+      # calculate the time taken for initializing the vwo instance
+      time_taken_for_init = sdk_init_end_time - sdk_init_start_time
+      # get sdkMetaInfo from settings file to check if the sdk was initialized earlier
+      sdk_meta_info = nil
+      was_initialized_earlier = false
+      
+      begin
+        if @@instance && @@instance.original_settings && @@instance.original_settings.is_a?(Hash)
+          sdk_meta_info = @@instance.original_settings["sdkMetaInfo"]
+          was_initialized_earlier = sdk_meta_info && sdk_meta_info.is_a?(Hash) ? sdk_meta_info["wasInitializedEarlier"] : false
+        end
+      rescue StandardError => e
+        was_initialized_earlier = false
+      end
+      if !was_initialized_earlier && SettingsService.instance.is_settings_valid
+        # send the sdk init info to vwo server
+        send_sdk_init_event(SettingsService.instance.settings_fetch_time, time_taken_for_init.to_s)
+      end
+
+      # send the usage stats event to vwo server
+      # get usage stats account id from settings
+      usage_stats_account_id = @@instance.original_settings["usageStatsAccountId"]
+      if usage_stats_account_id
+        send_sdk_usage_stats_event(usage_stats_account_id)
+      end
+
       @@instance
     rescue StandardError => e
       puts "[ERROR]: VWO-SDK: Got error while initializing VWO: #{e.message}"

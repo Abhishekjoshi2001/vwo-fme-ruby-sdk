@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2025-12-08
+
+### Fixed
+
+- Fixed settings normalization: empty `features` and `campaigns` are now automatically set to empty arrays, ensuring schema validation passes even when no features or campaigns exist.
+
+## [1.6.0] - 2025-09-12
+
+### Added
+
+- Post-segmentation variables are now automatically included as unregistered attributes, enabling post-segmentation without requiring manual setup.
+- Added support for built-in targeting conditions, including `browser version`, `OS version`, and `IP address`, with advanced operator support (greaterThan, lessThan, regex).`
+
+## [1.5.0] - 2025-08-26
+
+### Added
+
+- Sends usage statistics to VWO servers automatically during SDK initialization
+
+## [1.4.1] - 2025-08-06
+
+### Fixed
+
+- Typecast `account_id` to string in `network_util` before using.
+- Fixed broken test cases
+
+## [1.4.0] - 2025-08-06
+
+### Added
+
+- Added support for sending a one-time initialization event to the server to verify correct SDK setup.
+
+## [1.3.2] - 2025-07-24
+
+### Added
+
+- Send the SDK name and version in the settings call to VWO as query parameters.
+
+
+## [1.3.1] - 2025-06-12
+
+### Added
+
+- Added a feature to track and collect usage statistics related to various SDK features and configurations which can be useful for analytics, and gathering insights into how different features are being utilized by end users.
+
 ## [1.3.0] - 2025-06-11
 
 ### Added

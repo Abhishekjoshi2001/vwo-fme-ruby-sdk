@@ -12,10 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Event types
-module EventEnum
-    VWO_VARIATION_SHOWN = 'vwo_variationShown'
-    VWO_SYNC_VISITOR_PROP = 'vwo_syncVisitorProp'
-    VWO_INIT_CALLED = 'vwo_fmeSdkInit'
-    VWO_USAGE_STATS = 'vwo_sdkUsageStats'
-end
+require_relative './test_cases/e2e/test_helper'
+Dir["#{File.dirname(File.absolute_path(__FILE__))}/test_cases/**/*_tests.rb"].sort.each { |file| require file }

@@ -23,13 +23,20 @@ require_relative '../enums/log_level_enum'
 require_relative '../models/schemas/settings_schema_validation'
 
 class SettingsService
-  attr_accessor :sdk_key, :account_id, :expiry, :network_timeout, :hostname, :port, :protocol, :is_gateway_service_provided, :is_settings_valid
+  attr_accessor :sdk_key, :account_id, :expiry, :network_timeout, :hostname, :port, :protocol, :is_gateway_service_provided, :is_settings_valid, :settings_fetch_time
 
   class << self
     attr_accessor :instance
-    
+
     def get_instance
       @instance ||= SettingsService.new
+    end
+
+    def normalize_settings(settings)
+      normalized_settings = settings.dup
+      normalized_settings['features'] = [] if normalized_settings['features'].is_a?(Hash) && normalized_settings['features'].empty?
+      normalized_settings['campaigns'] = [] if normalized_settings['campaigns'].is_a?(Hash) && normalized_settings['campaigns'].empty?
+      normalized_settings
     end
   end
 
@@ -80,6 +87,8 @@ class SettingsService
 
     options['api-version'] = Constants::API_VERSION
     options[:source] = 'prod'
+    options[:sn] = Constants::SDK_NAME
+    options[:sv] = Constants::SDK_VERSION
 
     # When using gateway service, always fetch from SETTINGS_ENDPOINT since the gateway maintains the latest settings
     if @is_gateway_service_provided
@@ -91,9 +100,20 @@ class SettingsService
     request = RequestModel.new(@hostname, "GET", path, options, nil, nil, @protocol, @port)
     request.set_timeout(@network_timeout)
 
+    # store the current time in milliseconds
+    settings_fetch_start_time = (Time.now.to_f * 1000).to_i
+
     begin
       response = network_instance.get(request)
-      response.get_data
+      # calculate the time taken to fetch the settings
+      settings_fetch_end_time = (Time.now.to_f * 1000).to_i
+      time_taken = settings_fetch_end_time - settings_fetch_start_time
+      @settings_fetch_time = time_taken.to_s 
+      settings = response.get_data
+      # Deep duplicate the settings to avoid modifying the original object
+      normalized_settings = SettingsService.normalize_settings(settings)
+
+      normalized_settings
     rescue => e
       LoggerService.log(LogLevelEnum::ERROR, "Error fetching settings: #{e.message}", nil)
       raise e

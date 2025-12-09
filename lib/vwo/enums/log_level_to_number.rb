@@ -12,5 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative './test_helper'
-Dir["#{File.dirname(File.absolute_path(__FILE__))}/**/*_tests.rb"].sort.each { |file| require file }
+module LogLevelToNumber
+    LEVELS = {
+      'TRACE' => 0,
+      'DEBUG' => 1,
+      'INFO'  => 2,
+      'WARN'  => 3,
+      'ERROR' => 4
+    }.freeze
+  
+    def self.to_number(level)
+      LEVELS[level.to_s.upcase] || 0
+    end
+  end
